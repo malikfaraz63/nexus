@@ -18,7 +18,9 @@ public class CongressTradesAlgoEngine implements CongressPositionsSubscriber {
 
     private final HoldDecisionSubscriber holdDecisionSubscriber;
 
-    public CongressTradesAlgoEngine(EngineTimeProvider engineTimeProvider, CongressTradesEngineConfig engineConfig, HoldDecisionSubscriber holdDecisionSubscriber) {
+    public CongressTradesAlgoEngine(EngineTimeProvider engineTimeProvider,
+                                    CongressTradesEngineConfig engineConfig,
+                                    HoldDecisionSubscriber holdDecisionSubscriber) {
         this.engineTimeProvider = engineTimeProvider;
         this.engineConfig = engineConfig;
         this.holdDecisionSubscriber = holdDecisionSubscriber;

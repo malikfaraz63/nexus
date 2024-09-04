@@ -24,6 +24,10 @@ public class StocksHold {
         return true;
     }
 
+    public List<String> getTickers() {
+        return tickers;
+    }
+
     public double getTotalAllocation() {
         return unitAllocation.getValue() * tickers.size();
     }

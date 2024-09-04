@@ -19,7 +19,9 @@ public class CongressTradesEngineConfig {
 
     private static final int INVALID_LIMIT = -1;
 
-    public CongressTradesEngineConfig(CongressTradesEngineSetting setting, Duration tradesEvaluationInterval, LocalTime congressTradesLoadTime) {
+    public CongressTradesEngineConfig(CongressTradesEngineSetting setting,
+                                      Duration tradesEvaluationInterval,
+                                      LocalTime congressTradesLoadTime) {
         this.setting = setting;
         this.tradesEvaluationInterval = tradesEvaluationInterval;
         this.congressTradesLoadTime = congressTradesLoadTime;

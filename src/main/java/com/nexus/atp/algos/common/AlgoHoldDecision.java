@@ -2,18 +2,19 @@ package com.nexus.atp.algos.common;
 
 import com.nexus.atp.positions.hold.HoldDecision;
 import com.nexus.atp.positions.hold.StocksHold;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 public class AlgoHoldDecision implements HoldDecision {
     private final Map<StockHoldUnitAllocation, StocksHold> allocationToStockHold;
     private final List<StocksHold> stocksHolds;
 
+    private final Set<String> tickers;
+
     public AlgoHoldDecision(AllocationConfig configuration) {
         this.allocationToStockHold = new HashMap<>();
         this.stocksHolds = new ArrayList<>();
+        this.tickers = new HashSet<>();
 
         configuration.setupStockHolds(allocationToStockHold, stocksHolds);
     }
@@ -28,6 +29,8 @@ public class AlgoHoldDecision implements HoldDecision {
         for (StocksHold stocksHold : stocksHolds) {
             while (stocksHold.addTicker(tickers.get(tickerIndex))) {
                 tickerIndex++;
+
+                tickers.add(tickers.get(tickerIndex));
 
                 if (tickerIndex == tickers.size()) {
                     return areStockHoldAllocationsFull();
@@ -54,5 +57,10 @@ public class AlgoHoldDecision implements HoldDecision {
     @Override
     public List<StocksHold> getStocksHolds() {
         return stocksHolds;
+    }
+
+    @Override
+    public Set<String> getTickers() {
+        return tickers;
     }
 }

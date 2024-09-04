@@ -53,12 +53,12 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
         int lowerBound = 0;
         while (transactions.get(lowerBound).side() == TradingSide.SELL) {
-            lowerBound ++;
+            lowerBound++;
         }
 
         int upperBound = transactions.size();
         while (transactions.get(upperBound - 1).side() == TradingSide.BUY) {
-            upperBound --;
+            upperBound--;
         }
 
         double exposure = transactions.subList(lowerBound, upperBound)
@@ -115,6 +115,10 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
     public int getOutstandingQuantity() {
         return outstandingQuantity;
+    }
+
+    public boolean hasOutstandingQuantity() {
+        return outstandingQuantity > 0;
     }
 
     public double getNotional() {
