@@ -1,4 +1,4 @@
-package com.nexus.atp.common;
+package com.nexus.atp.common.transaction;
 
 import java.util.Date;
 import java.util.Objects;
@@ -42,6 +42,17 @@ public abstract class BaseTransaction implements Comparable<BaseTransaction> {
                 quantity * price;
             case SELL ->
                 quantity * -price;
+        };
+    }
+
+    public double getVolume() {
+        return quantity * price;
+    }
+
+    public int getOutstandingQuantity() {
+        return switch (side) {
+            case BUY -> quantity;
+            case SELL -> -quantity;
         };
     }
 

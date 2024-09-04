@@ -1,4 +1,4 @@
-package com.nexus.atp.algos.common.hold;
+package com.nexus.atp.algos.common;
 
 public enum StockHoldUnitAllocation {
     LARGE(0.05),

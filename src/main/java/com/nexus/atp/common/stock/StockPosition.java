@@ -1,4 +1,7 @@
-package com.nexus.atp.common;
+package com.nexus.atp.common.stock;
+
+import com.nexus.atp.common.transaction.BaseTransaction;
+import com.nexus.atp.common.transaction.TradingSide;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,7 +15,9 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
     private final String ticker;
     private double notional;
+    private double volume;
     private int quantity;
+    private int outstandingQuantity;
 
     public StockPosition(String ticker) {
         this.ticker = ticker;
@@ -20,6 +25,10 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
         this.notional = 0;
     }
 
+    /**
+     * Adds the latest transaction.
+     * @param transaction
+     */
     public void addTransaction(TRANSACTION transaction) {
         if (!transaction.ticker().equals(ticker)) {
             throw new IllegalArgumentException("Adding transaction for stock with different ticker");
@@ -27,7 +36,9 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
         positionTransactions.add(transaction);
         notional += transaction.getNotional();
+        volume += transaction.getVolume();
         quantity += transaction.quantity();
+        outstandingQuantity += transaction.getOutstandingQuantity();
     }
 
     public List<TRANSACTION> getTransactions(Date fromDate, Date toDate) {
@@ -35,6 +46,35 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
             .stream()
             .filter(transaction -> transaction.transactionDate().after(fromDate) && transaction.transactionDate().before(toDate))
             .toList();
+    }
+
+    public double getCoreProfitability(Date fromDate, Date toDate) {
+        List<TRANSACTION> transactions = getTransactions(fromDate, toDate);
+
+        int lowerBound = 0;
+        while (transactions.get(lowerBound).side() == TradingSide.SELL) {
+            lowerBound ++;
+        }
+
+        int upperBound = transactions.size();
+        while (transactions.get(upperBound - 1).side() == TradingSide.BUY) {
+            upperBound --;
+        }
+
+        double exposure = transactions.subList(lowerBound, upperBound)
+                .stream()
+                .map(TRANSACTION::getNotional)
+                .reduce(Double::sum)
+                .orElse(0.0);
+
+        double price = transactions.subList(lowerBound, upperBound)
+                .stream()
+                .filter(transaction -> transaction.side() == TradingSide.BUY)
+                .map(TRANSACTION::getNotional)
+                .reduce(Double::sum)
+                .orElse(0.0);
+
+        return (-exposure) / price;
     }
 
     public double getNotional(Date fromDate, Date toDate) {
@@ -53,8 +93,28 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
             .orElse(0);
     }
 
+    public String getTicker() {
+        return ticker;
+    }
+
+    public double getVolume() {
+        return volume;
+    }
+
+    public double getVolume(Date fromDate, Date toDate) {
+        return getTransactions(fromDate, toDate)
+                .stream()
+                .map(TRANSACTION::getVolume)
+                .reduce(Double::sum)
+                .orElse(0.0);
+    }
+
     public int getQuantity() {
         return quantity;
+    }
+
+    public int getOutstandingQuantity() {
+        return outstandingQuantity;
     }
 
     public double getNotional() {

@@ -1,14 +1,14 @@
-package com.nexus.atp.algos.common.hold;
+package com.nexus.atp.algos.common;
 
-import com.nexus.atp.positions.hold.StockHold;
+import com.nexus.atp.positions.hold.StocksHold;
 import java.util.List;
 import java.util.Map;
 
-public class AllocationConfiguration {
+public class AllocationConfig {
     private final Map<StockHoldUnitAllocation, Double> allocationLimits;
     private final List<StockHoldUnitAllocation> orderedAllocations;
 
-    public AllocationConfiguration(Map<StockHoldUnitAllocation, Double> allocationLimits, List<StockHoldUnitAllocation> orderedAllocations) {
+    public AllocationConfig(Map<StockHoldUnitAllocation, Double> allocationLimits, List<StockHoldUnitAllocation> orderedAllocations) {
         if (allocationLimits.isEmpty()) {
             throw new IllegalArgumentException("No allocation limits given");
         }
@@ -21,12 +21,12 @@ public class AllocationConfiguration {
         this.orderedAllocations = orderedAllocations;
     }
 
-    public void setupStockHolds(Map<StockHoldUnitAllocation, StockHold> allocationToStockHold, List<StockHold> stockHolds) {
+    public void setupStockHolds(Map<StockHoldUnitAllocation, StocksHold> allocationToStockHold, List<StocksHold> stocksHolds) {
         for (StockHoldUnitAllocation allocation : orderedAllocations) {
-            StockHold stockHold = new StockHold(allocation, allocationLimits.get(allocation));
+            StocksHold stocksHold = new StocksHold(allocation, allocationLimits.get(allocation));
 
-            stockHolds.add(stockHold);
-            allocationToStockHold.put(allocation, stockHold);
+            stocksHolds.add(stocksHold);
+            allocationToStockHold.put(allocation, stocksHold);
         }
     }
 }

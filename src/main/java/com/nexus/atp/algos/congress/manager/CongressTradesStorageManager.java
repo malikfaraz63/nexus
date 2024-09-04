@@ -1,9 +1,9 @@
 package com.nexus.atp.algos.congress.manager;
 
-import com.nexus.atp.algos.congress.CongressPosition;
+import com.nexus.atp.algos.congress.position.CongressPosition;
 import com.nexus.atp.algos.congress.CongressTransaction;
-import com.nexus.atp.common.BaseTransactionStorageManager;
-import com.nexus.atp.common.TradingSide;
+import com.nexus.atp.common.transaction.BaseTransactionStorageManager;
+import com.nexus.atp.common.transaction.TradingSide;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.json.JSONObject;
 
 public class CongressTradesStorageManager
@@ -18,35 +20,49 @@ public class CongressTradesStorageManager
 
     private List<CongressTransaction> transactions;
 
-    private final Map<String, CongressPosition> congressIdToTransaction;
+    private final Map<String, CongressPosition> congressIdToPosition;
     private final Set<CongressPosition> congressPositions;
 
     public CongressTradesStorageManager(String filePath) {
         super(filePath, "congressTransactions");
-        this.congressIdToTransaction = new HashMap<>();
+        this.congressIdToPosition = new HashMap<>();
         this.congressPositions = new HashSet<>();
     }
 
     @Override
-    public Set<CongressPosition> getCongressPositions() {
+    public Map<String, CongressPosition> getAllCongressPositions() {
         if (transactions == null) {
             this.transactions = super.getTransactions();
 
             for (CongressTransaction transaction : transactions) {
                 putTransaction(transaction);
             }
+
+            congressPositions.forEach(CongressPosition::didViewUpdate);
         }
 
-        return congressPositions;
+        return congressIdToPosition;
+    }
+
+    @Override
+    public Set<CongressPosition> getNewCongressPositions() {
+        Set<CongressPosition> updatedPositions = congressPositions
+                .stream()
+                .filter(CongressPosition::wasUpdated)
+                .collect(Collectors.toSet());
+
+        updatedPositions.forEach(CongressPosition::didViewUpdate);
+
+        return updatedPositions;
     }
 
     @Override
     public CongressPosition getCongressPosition(String congressId) {
-        return congressIdToTransaction.get(congressId);
+        return congressIdToPosition.get(congressId);
     }
 
     private void putTransaction(CongressTransaction transaction) {
-        CongressPosition position = congressIdToTransaction.computeIfAbsent(transaction.congressId(), congressId -> {
+        CongressPosition position = congressIdToPosition.computeIfAbsent(transaction.congressId(), congressId -> {
             CongressPosition congressPosition = new CongressPosition(congressId);
             congressPositions.add(congressPosition);
 

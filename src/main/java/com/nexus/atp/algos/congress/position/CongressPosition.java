@@ -1,17 +1,17 @@
-package com.nexus.atp.algos.congress;
+package com.nexus.atp.algos.congress.position;
 
-import com.nexus.atp.common.StockPosition;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.nexus.atp.algos.congress.CongressTransaction;
+import com.nexus.atp.common.stock.StockPosition;
+
+import java.util.*;
 
 public class CongressPosition {
     private final String congressId;
 
     private final Map<String, StockPosition<CongressTransaction>> stockTickerToPosition;
     private final Set<StockPosition<CongressTransaction>> stockPositions;
+
+    private boolean wasUpdated = false;
 
     public CongressPosition(String congressId) {
         this.congressId = congressId;
@@ -33,10 +33,37 @@ public class CongressPosition {
         });
 
         position.addTransaction(transaction);
+
+        wasUpdated = true;
+    }
+
+    public boolean wasUpdated() {
+        return wasUpdated;
+    }
+
+    public void didViewUpdate() {
+        wasUpdated = false;
+    }
+
+    public String getCongressId() {
+        return congressId;
+    }
+
+    public StockPosition<CongressTransaction> getStockPosition(String ticker) {
+        return stockTickerToPosition.get(ticker);
     }
 
     public Set<StockPosition<CongressTransaction>> getStockPositions() {
         return stockPositions;
+    }
+
+    public double getVolumeAdjustedProfitability(Date fromDate, Date toDate) {
+        return stockPositions
+                .stream()
+                .map(stock -> stock.getCoreProfitability(fromDate, toDate) * stock.getVolume(fromDate, toDate))
+                .reduce(Double::sum)
+                .orElse(0.0)
+                / stockPositions.size();
     }
 
     public double getNotional(Date fromDate, Date toDate) {
@@ -51,5 +78,22 @@ public class CongressPosition {
             .stream()
             .map(stockPosition -> stockPosition.getQuantity(fromDate, toDate))
             .reduce(0, Integer::sum);
+    }
+
+    @Override
+    public int hashCode() {
+        return congressId.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof CongressPosition other) {
+            return congressId.equals(other.congressId);
+        }
+        if (obj instanceof String other) {
+            return congressId.equals(other);
+        }
+
+        return false;
     }
 }

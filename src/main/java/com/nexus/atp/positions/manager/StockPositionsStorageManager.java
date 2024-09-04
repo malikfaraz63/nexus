@@ -1,9 +1,9 @@
 package com.nexus.atp.positions.manager;
 
 import com.nexus.atp.positions.PositionTransaction;
-import com.nexus.atp.common.StockPosition;
-import com.nexus.atp.common.BaseTransactionStorageManager;
-import com.nexus.atp.common.TradingSide;
+import com.nexus.atp.common.stock.StockPosition;
+import com.nexus.atp.common.transaction.BaseTransactionStorageManager;
+import com.nexus.atp.common.transaction.TradingSide;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;

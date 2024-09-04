@@ -1,7 +1,7 @@
 package com.nexus.atp.positions;
 
-import com.nexus.atp.common.BaseTransaction;
-import com.nexus.atp.common.TradingSide;
+import com.nexus.atp.common.transaction.BaseTransaction;
+import com.nexus.atp.common.transaction.TradingSide;
 import java.util.Date;
 
 public class PositionTransaction extends BaseTransaction {

@@ -1,7 +1,7 @@
 package com.nexus.atp.positions.manager;
 
 import com.nexus.atp.positions.PositionTransaction;
-import com.nexus.atp.common.StockPosition;
+import com.nexus.atp.common.stock.StockPosition;
 import java.util.Set;
 
 /**

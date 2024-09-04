@@ -1,15 +1,15 @@
 package com.nexus.atp.positions.hold;
 
-import com.nexus.atp.algos.common.hold.StockHoldUnitAllocation;
+import com.nexus.atp.algos.common.StockHoldUnitAllocation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StockHold {
+public class StocksHold {
     private final List<String> tickers;
     private final StockHoldUnitAllocation unitAllocation;
     private final double allocationLimit;
 
-    public StockHold(StockHoldUnitAllocation unitAllocation, double allocationLimit) {
+    public StocksHold(StockHoldUnitAllocation unitAllocation, double allocationLimit) {
         this.tickers = new ArrayList<>();
         this.unitAllocation = unitAllocation;
         this.allocationLimit = allocationLimit;
