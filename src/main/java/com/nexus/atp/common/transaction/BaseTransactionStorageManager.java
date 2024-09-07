@@ -2,6 +2,7 @@ package com.nexus.atp.common.transaction;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,10 +36,6 @@ public abstract class BaseTransactionStorageManager<TRANSACTION extends BaseTran
     }
 
     protected List<TRANSACTION> getTransactions() {
-        if (fileContents == null) {
-            initialize();
-        }
-
         JSONArray transactionsJson = fileContents.getJSONArray(transactionsKey);
 
         // Map the JSONObject to the Person record
@@ -58,7 +55,7 @@ public abstract class BaseTransactionStorageManager<TRANSACTION extends BaseTran
         transactionsJson.put(json);
 
         try {
-            Files.write(Paths.get(filePath), fileContents.toString(4).getBytes());
+            Files.write(Paths.get(filePath), fileContents.toString(2).getBytes());
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

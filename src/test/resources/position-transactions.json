@@ -1,0 +1,9 @@
+{"positionTransactions": [
+  {
+    "ticker": "AAPL",
+    "side": "BUY",
+    "quantity": 50,
+    "price": 210.41,
+    "transactionDate": 1725714139156
+  }
+]}

@@ -16,8 +16,6 @@ import org.json.JSONObject;
 public class StockPositionsStorageManager
     extends BaseTransactionStorageManager<PositionTransaction> implements StockPositionsManager {
 
-    private List<PositionTransaction> transactions;
-
     private final Map<String, StockPosition<PositionTransaction>> stockTickerToPosition;
     private final Set<StockPosition<PositionTransaction>> stockPositions;
 
@@ -25,19 +23,26 @@ public class StockPositionsStorageManager
         super(filePath, "positionTransactions");
         this.stockTickerToPosition = new HashMap<>();
         this.stockPositions = new HashSet<>();
+
+        initializeTransactions();
+    }
+
+    private void initializeTransactions() {
+        List<PositionTransaction> transactions = super.getTransactions();
+
+        for (PositionTransaction transaction : transactions) {
+            putTransaction(transaction);
+        }
     }
 
     @Override
     public Set<StockPosition<PositionTransaction>> getStockPositions() {
-        if (transactions == null) {
-            this.transactions = super.getTransactions();
-
-            for (PositionTransaction transaction : transactions) {
-                putTransaction(transaction);
-            }
-        }
-
         return stockPositions;
+    }
+
+    @Override
+    public StockPosition<PositionTransaction> getStockPosition(String ticker) {
+        return stockTickerToPosition.get(ticker);
     }
 
     private void putTransaction(PositionTransaction transaction) {

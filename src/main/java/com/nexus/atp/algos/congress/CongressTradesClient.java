@@ -16,13 +16,11 @@ public class CongressTradesClient implements CongressTradesSubscriber {
     private final CongressPositionsSubscriber congressPositionsSubscriber;
     private final CongressPositionsManager congressPositionsManager;
 
-    public CongressTradesClient(
-            CongressTradesEngineConfig config,
-        CongressPositionsSubscriber congressPositionsSubscriber,
-        CongressPositionsManager congressPositionsManager,
-        CongressTradesFetcher congressTradesFetcher,
-        ScheduledTimer timer
-    ) {
+    public CongressTradesClient(CongressTradesEngineConfig config,
+                                CongressPositionsSubscriber congressPositionsSubscriber,
+                                CongressPositionsManager congressPositionsManager,
+                                CongressTradesFetcher congressTradesFetcher,
+                                ScheduledTimer timer) {
         this.congressPositionsSubscriber = congressPositionsSubscriber;
         this.congressPositionsManager = congressPositionsManager;
 

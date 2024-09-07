@@ -28,6 +28,10 @@ public class StocksHold {
         return tickers;
     }
 
+    public StockHoldUnitAllocation getUnitAllocation() {
+        return unitAllocation;
+    }
+
     public double getTotalAllocation() {
         return unitAllocation.getValue() * tickers.size();
     }

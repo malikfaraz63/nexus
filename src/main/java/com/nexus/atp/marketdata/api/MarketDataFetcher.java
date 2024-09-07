@@ -1,4 +1,4 @@
-package com.nexus.atp.marketdata;
+package com.nexus.atp.marketdata.api;
 
 import com.nexus.atp.marketdata.quote.StockQuoteHandler;
 import com.nexus.atp.marketdata.quote.StockQuotesHandler;

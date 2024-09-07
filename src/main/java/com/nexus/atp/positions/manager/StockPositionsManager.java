@@ -9,5 +9,6 @@ import java.util.Set;
  */
 public interface StockPositionsManager {
     Set<StockPosition<PositionTransaction>> getStockPositions();
+    StockPosition<PositionTransaction> getStockPosition(String ticker);
     void addPositionTransaction(PositionTransaction transaction);
 }

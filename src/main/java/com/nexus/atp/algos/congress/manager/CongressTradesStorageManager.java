@@ -18,29 +18,31 @@ import org.json.JSONObject;
 public class CongressTradesStorageManager
     extends BaseTransactionStorageManager<CongressTransaction> implements CongressPositionsManager {
 
-    private List<CongressTransaction> transactions;
-
     private final Map<String, CongressPosition> congressIdToPosition;
     private final Set<CongressPosition> congressPositions;
+
+    private List<CongressTransaction> transactions;
 
     public CongressTradesStorageManager(String filePath) {
         super(filePath, "congressTransactions");
         this.congressIdToPosition = new HashMap<>();
         this.congressPositions = new HashSet<>();
+
+        initializeTransactions();
+    }
+
+    private void initializeTransactions() {
+        this.transactions = super.getTransactions();
+
+        for (CongressTransaction transaction : transactions) {
+            putTransaction(transaction);
+        }
+
+        congressPositions.forEach(CongressPosition::didViewUpdate);
     }
 
     @Override
     public Map<String, CongressPosition> getAllCongressPositions() {
-        if (transactions == null) {
-            this.transactions = super.getTransactions();
-
-            for (CongressTransaction transaction : transactions) {
-                putTransaction(transaction);
-            }
-
-            congressPositions.forEach(CongressPosition::didViewUpdate);
-        }
-
         return congressIdToPosition;
     }
 

@@ -26,8 +26,8 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
     }
 
     /**
-     * Adds the latest transaction.
-     * @param transaction
+     * Adds the latest transaction on the stock position.
+     * @param transaction the transaction to be added to this position
      */
     public void addTransaction(TRANSACTION transaction) {
         if (!transaction.ticker().equals(ticker)) {
@@ -46,6 +46,51 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
             .stream()
             .filter(transaction -> transaction.transactionDate().after(fromDate) && transaction.transactionDate().before(toDate))
             .toList();
+    }
+
+    public List<TRANSACTION> getOutstandingBuyTransactions() {
+        List<TRANSACTION> buyTransactions = new ArrayList<>();
+        List<TRANSACTION> sellTransactions = new ArrayList<>();
+
+        for (TRANSACTION transaction : positionTransactions) {
+            if (transaction.side() == TradingSide.BUY) {
+                buyTransactions.add(transaction);
+            } else {
+                sellTransactions.add(transaction);
+            }
+        }
+
+        int buyIndex = 0;
+        int buyQuantity = buyTransactions.getFirst().quantity();
+
+        int sellIndex = 0;
+        while (sellIndex < sellTransactions.size()) {
+            int sellQuantity = sellTransactions.get(sellIndex).quantity();
+
+            while (sellQuantity > 0) {
+                int reduction = Math.min(sellQuantity, buyQuantity);
+                sellQuantity -= reduction;
+                buyQuantity -= reduction;
+
+                if (buyQuantity == 0) {
+                    buyIndex++;
+                    if (buyIndex == buyTransactions.size()) {
+                        return List.of();
+                    }
+
+                    buyQuantity = buyTransactions.get(buyIndex).quantity();
+                }
+            }
+
+            sellIndex++;
+        }
+
+        if (buyQuantity < buyTransactions.get(buyIndex).quantity()) {
+            TRANSACTION replacementTransaction = buyTransactions.get(buyIndex).withQuantity(buyQuantity);
+            buyTransactions.set(buyIndex, replacementTransaction);
+        }
+
+        return buyTransactions.subList(buyIndex, buyTransactions.size());
     }
 
     public double getCoreProfitability(Date fromDate, Date toDate) {

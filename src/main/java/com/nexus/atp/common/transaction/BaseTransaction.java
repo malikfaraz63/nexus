@@ -64,6 +64,8 @@ public abstract class BaseTransaction implements Comparable<BaseTransaction> {
         return transactionDate;
     }
 
+    public abstract <TRANSACTION extends BaseTransaction> TRANSACTION withQuantity(int quantity);
+
     @Override
     public int hashCode() {
         return Objects.hash(ticker, transactionDate);
