@@ -1,0 +1,11 @@
+{"congressTransactions": [
+  {
+    "congressId": "M000355",
+    "ticker": "LMT",
+    "side": "BUY",
+    "quantity": 1000,
+    "price": 447.11,
+    "reportingDate": 1725783747195,
+    "transactionDate": 1725714139156
+  }
+]}

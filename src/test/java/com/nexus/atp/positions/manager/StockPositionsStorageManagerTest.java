@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Date;
 
+import static com.nexus.atp.utils.Assert.assertEqualsFile;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class StockPositionsStorageManagerTest {
@@ -20,7 +21,7 @@ public class StockPositionsStorageManagerTest {
     private final Path addedTransactionFile = Path.of("src/test/resources/add-position-transactions.json");
     private final Path backupFile = Path.of("src/test/resources/position-transactions-backup.json");
 
-    private final StockPositionsStorageManager stockPositionsStorageManager =
+    private final StockPositionsStorageManager storageManager =
             new StockPositionsStorageManager(transactionsFile.toString());
 
     @AfterEach
@@ -30,7 +31,7 @@ public class StockPositionsStorageManagerTest {
 
     @Test
     public void storageManagerShouldGetTransactionsFromFile() {
-        StockPosition<PositionTransaction> position = stockPositionsStorageManager.getStockPosition("AAPL");
+        StockPosition<PositionTransaction> position = storageManager.getStockPosition("AAPL");
 
         PositionTransaction transaction = position.getTransactions().getFirst();
 
@@ -51,19 +52,8 @@ public class StockPositionsStorageManagerTest {
                 Date.from(Instant.ofEpochMilli(1725714139156L))
         );
 
-        stockPositionsStorageManager.addPositionTransaction(transaction);
+        storageManager.addPositionTransaction(transaction);
 
         assertEqualsFile(addedTransactionFile, transactionsFile);
-    }
-
-    private static void assertEqualsFile(Path expectedFile, Path actualFile) {
-        try {
-            String expectedContents = Files.readString(expectedFile);
-            String actualContents = Files.readString(actualFile);
-
-            assertEquals(expectedContents, actualContents);
-        } catch (IOException e) {
-            assert false;
-        }
     }
 }

@@ -8,15 +8,13 @@ public class CongressTransaction extends BaseTransaction {
     private final String congressId;
     private final Date reportingDate;
 
-    public CongressTransaction(
-        String ticker,
-        String congressId,
-        int quantity,
-        double price,
-        TradingSide side,
-        Date transactionDate,
-        Date reportingDate
-    ) {
+    public CongressTransaction(String ticker,
+                               String congressId,
+                               int quantity,
+                               double price,
+                               TradingSide side,
+                               Date transactionDate,
+                               Date reportingDate) {
         super(ticker, quantity, price, side, transactionDate);
         this.congressId = congressId;
         this.reportingDate = reportingDate;
@@ -28,5 +26,18 @@ public class CongressTransaction extends BaseTransaction {
 
     public Date reportingDate() {
         return reportingDate;
+    }
+
+    @Override
+    public <TRANSACTION extends BaseTransaction> TRANSACTION withQuantity(int quantity) {
+        return (TRANSACTION) new CongressTransaction(
+                ticker(),
+                congressId(),
+                quantity,
+                price(),
+                side(),
+                transactionDate(),
+                reportingDate()
+        );
     }
 }
