@@ -1,0 +1,9 @@
+{
+  "marketData": {"AAPL": [
+    {
+      "price": 100.23,
+      "timestamp": 1725714139156
+    }
+  ]},
+  "stockTickers": ["AAPL"]
+}

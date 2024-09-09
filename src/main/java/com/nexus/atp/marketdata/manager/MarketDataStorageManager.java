@@ -25,7 +25,7 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
         initializeMarketData();
     }
 
-    public void initializeMarketData() {
+    private void initializeMarketData() {
         JSONArray stockTickersJson = fileContents.getJSONArray("stockTickers");
 
         List<String> stockTickers = new ArrayList<>();
@@ -57,12 +57,22 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
                 this::onStockQuote);
     }
 
-    private StockQuote getStockQuoteFromJSON(String ticker, JSONObject json) {
-        return new StockQuote(
-                ticker,
-                json.getDouble("price"),
-                Date.from(Instant.ofEpochMilli(json.getLong("timestamp")))
-        );
+    @Override
+    public void subscribeToStock(String ticker) {
+        if (stockTickerToQuote.containsKey(ticker)) {
+            return;
+        }
+
+        stockTickerToQuote.put(ticker, new ArrayList<>());
+        subscribeToStockTicker(ticker);
+        fileContents.getJSONArray("stockTickers").put(ticker);
+
+        super.writeFileContents();
+    }
+
+    @Override
+    public List<StockQuote> getStockQuotes(String ticker) {
+        return stockTickerToQuote.get(ticker);
     }
 
     @Override
@@ -95,17 +105,32 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
         JSONObject json = getJSONFromStockQuote(stockQuote);
         JSONArray stockDataJson = fileContents
                 .getJSONObject("marketData")
-                .getJSONArray(stockQuote.getTicker());
-        stockDataJson.put(json);
+                .optJSONArray(stockQuote.getTicker());
+
+        if (stockDataJson != null) {
+            stockDataJson.put(json);
+        } else {
+            fileContents
+                    .getJSONObject("marketData")
+                    .put(stockQuote.getTicker(), List.of(json));
+        }
 
         super.writeFileContents();
+    }
+
+    private StockQuote getStockQuoteFromJSON(String ticker, JSONObject json) {
+        return new StockQuote(
+                ticker,
+                json.getDouble("price"),
+                Date.from(Instant.ofEpochMilli(json.getLong("timestamp")))
+        );
     }
 
     private JSONObject getJSONFromStockQuote(StockQuote stockQuote) {
         JSONObject json = new JSONObject();
 
         json.put("price", stockQuote.getPrice());
-        json.put("timestamp", stockQuote.getTimestamp());
+        json.put("timestamp", stockQuote.getTimestamp().toInstant().toEpochMilli());
 
         return json;
     }

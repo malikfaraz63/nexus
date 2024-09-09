@@ -18,9 +18,9 @@ import static com.nexus.atp.utils.Assert.assertEqualsFile;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CongressTradesStorageManagerTest {
-    private final Path transactionsFile = Path.of("src/test/resources/congress-transactions.json");
-    private final Path addedTransactionFile = Path.of("src/test/resources/add-congress-transactions.json");
-    private final Path backupFile = Path.of("src/test/resources/congress-transactions-backup.json");
+    private static final Path transactionsFile = Path.of("src/test/resources/congress-transactions.json");
+    private static final Path addedTransactionFile = Path.of("src/test/resources/add-congress-transactions.json");
+    private static final Path backupFile = Path.of("src/test/resources/congress-transactions-backup.json");
 
     private final CongressTradesStorageManager storageManager =
             new CongressTradesStorageManager(transactionsFile.toString());
