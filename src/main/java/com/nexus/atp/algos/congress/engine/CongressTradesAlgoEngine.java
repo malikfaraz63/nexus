@@ -30,6 +30,8 @@ public class CongressTradesAlgoEngine implements CongressPositionsSubscriber {
     public void initializeCongressPositions(Map<String, CongressPosition> congressIdToPosition) {
         if (engineConfig.getSetting() == CongressTradesEngineSetting.AUTO_RANKED) {
             computeAutoRankedHold(congressIdToPosition);
+        } else if (engineConfig.getSetting() == CongressTradesEngineSetting.MANUAL_RANKED) {
+            computeManualRankedHold(congressIdToPosition);
         }
     }
 
@@ -63,6 +65,9 @@ public class CongressTradesAlgoEngine implements CongressPositionsSubscriber {
             for (StockPosition<CongressTransaction> stockPosition : congressPosition.getStockPositions()) {
                 RankedStock rankedStock = rankedStocks.computeIfAbsent(stockPosition.getTicker(), RankedStock::new);
                 rankedStock.addTradedVolume(stockPosition.getVolume());
+                // TODO: rankedStock.addTradedVolume(stockPosition.getVolume(lookbackTime, currentTime));
+                //       rankedStock.addBuyVolume(stockPosition.getBuyVolume(lookbackTime, currentTime));
+                //       ... or maybe just getNotional()?
             }
         }
 
@@ -91,6 +96,14 @@ public class CongressTradesAlgoEngine implements CongressPositionsSubscriber {
                 }
             }
         }
+
+        handleSaturatedDecision(holdDecision);
+    }
+
+    private void computeManualRankedHold(Map<String, CongressPosition> congressIdToPosition) {
+        AlgoHoldDecision holdDecision = new AlgoHoldDecision(engineConfig.getAlgoHoldAllocationConfig());
+
+        // TODO: manually ranked congressmen
 
         handleSaturatedDecision(holdDecision);
     }

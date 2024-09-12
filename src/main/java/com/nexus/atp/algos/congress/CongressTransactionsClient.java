@@ -1,7 +1,7 @@
 package com.nexus.atp.algos.congress;
 
 import com.nexus.atp.algos.congress.api.CongressTradesFetcher;
-import com.nexus.atp.algos.congress.api.CongressTradesSubscriber;
+import com.nexus.atp.algos.congress.api.CongressTransactionsSubscriber;
 import com.nexus.atp.algos.congress.engine.CongressTradesEngineConfig;
 import com.nexus.atp.algos.congress.manager.CongressPositionsManager;
 import com.nexus.atp.algos.congress.position.CongressPosition;
@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class CongressTradesClient implements CongressTradesSubscriber {
+public class CongressTransactionsClient implements CongressTransactionsSubscriber {
     private final CongressPositionsSubscriber congressPositionsSubscriber;
     private final CongressPositionsManager congressPositionsManager;
 
-    public CongressTradesClient(CongressTradesEngineConfig config,
-                                CongressPositionsSubscriber congressPositionsSubscriber,
-                                CongressPositionsManager congressPositionsManager,
-                                CongressTradesFetcher congressTradesFetcher,
-                                ScheduledTimer timer) {
+    public CongressTransactionsClient(CongressTradesEngineConfig config,
+                                      CongressPositionsSubscriber congressPositionsSubscriber,
+                                      CongressPositionsManager congressPositionsManager,
+                                      CongressTradesFetcher congressTradesFetcher,
+                                      ScheduledTimer timer) {
         this.congressPositionsSubscriber = congressPositionsSubscriber;
         this.congressPositionsManager = congressPositionsManager;
 

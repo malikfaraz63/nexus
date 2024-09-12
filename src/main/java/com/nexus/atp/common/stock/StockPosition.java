@@ -97,13 +97,18 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
         List<TRANSACTION> transactions = getTransactions(fromDate, toDate);
 
         int lowerBound = 0;
-        while (transactions.get(lowerBound).side() == TradingSide.SELL) {
+        while (lowerBound < transactions.size() && transactions.get(lowerBound).side() == TradingSide.SELL) {
             lowerBound++;
         }
 
         int upperBound = transactions.size();
-        while (transactions.get(upperBound - 1).side() == TradingSide.BUY) {
+        while (upperBound > 0 && transactions.get(upperBound - 1).side() == TradingSide.BUY) {
             upperBound--;
+        }
+
+        if (lowerBound == upperBound) {
+            // TODO: error management and debugging logs
+            return 0;
         }
 
         double exposure = transactions.subList(lowerBound, upperBound)

@@ -68,7 +68,7 @@ public abstract class BaseTransaction implements Comparable<BaseTransaction> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ticker, transactionDate);
+        return Objects.hash(ticker, quantity, price, transactionDate);
     }
 
     @Override
@@ -79,7 +79,7 @@ public abstract class BaseTransaction implements Comparable<BaseTransaction> {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof BaseTransaction otherTransaction) {
-            return Objects.equals(ticker, otherTransaction.ticker);
+            return this.hashCode() == otherTransaction.hashCode();
         }
         return false;
     }
