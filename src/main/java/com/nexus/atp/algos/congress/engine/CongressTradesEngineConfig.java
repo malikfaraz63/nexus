@@ -33,6 +33,10 @@ public class CongressTradesEngineConfig {
         return setting;
     }
 
+    /**
+     * The interval from current time for evaluating congress trades.
+     * @return the duration for looking back
+     */
     public Duration getTradesEvaluationInterval() {
         return tradesEvaluationInterval;
     }
