@@ -15,7 +15,6 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
     private final String ticker;
     private double notional;
-    private double volume;
     private int quantity;
     private int outstandingQuantity;
 
@@ -36,7 +35,6 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
 
         positionTransactions.add(transaction);
         notional += transaction.getNotional();
-        volume += transaction.getVolume();
         quantity += transaction.quantity();
         outstandingQuantity += transaction.getOutstandingQuantity();
     }
@@ -147,13 +145,18 @@ public class StockPosition<TRANSACTION extends BaseTransaction> {
         return ticker;
     }
 
-    public double getVolume() {
-        return volume;
-    }
-
     public double getVolume(Date fromDate, Date toDate) {
         return getTransactions(fromDate, toDate)
                 .stream()
+                .map(TRANSACTION::getVolume)
+                .reduce(Double::sum)
+                .orElse(0.0);
+    }
+
+    public double getBuyVolume(Date fromDate, Date toDate) {
+        return getTransactions(fromDate, toDate)
+                .stream()
+                .filter(transaction -> transaction.side() == TradingSide.BUY)
                 .map(TRANSACTION::getVolume)
                 .reduce(Double::sum)
                 .orElse(0.0);
