@@ -3,7 +3,7 @@ package com.nexus.atp.positions.controls;
 import com.nexus.atp.common.EngineTimeProvider;
 import com.nexus.atp.common.stock.StockPosition;
 import com.nexus.atp.marketdata.manager.MarketDataManager;
-import com.nexus.atp.marketdata.quote.StockQuote;
+import com.nexus.atp.marketdata.quote.StockQuoteIntraDay;
 import com.nexus.atp.positions.PositionTransaction;
 
 import java.util.Date;
@@ -26,8 +26,8 @@ public class StockPositionControlsRunner implements StockPositionControls {
 
     @Override
     public StockPositionHoldOutcome getStockPositionHoldOutcome(StockPosition<PositionTransaction> stockPosition,
-                                                                StockQuote stockQuote) {
-        assert stockPosition.getTicker().equals(stockQuote.getTicker());
+                                                                StockQuoteIntraDay stockQuote) {
+        assert stockPosition.getTicker().equals(stockQuote.ticker());
 
         StockPositionHoldType takeProfitControlResult = runTakeProfitControl(stockPosition, stockQuote);
         if (takeProfitControlResult == StockPositionHoldType.SELL) {
@@ -51,7 +51,7 @@ public class StockPositionControlsRunner implements StockPositionControls {
      * @return whether to hold or sell
      */
     private StockPositionHoldType runTakeProfitControl(StockPosition<PositionTransaction> stockPosition,
-                                         StockQuote stockQuote) {
+                                         StockQuoteIntraDay stockQuote) {
         List<PositionTransaction> transactions = stockPosition.getOutstandingBuyTransactions();
 
         sellQuantity = 0;
@@ -68,15 +68,15 @@ public class StockPositionControlsRunner implements StockPositionControls {
         }
     }
 
-    private boolean profitExceedsMargin(PositionTransaction transaction, StockQuote stockQuote) {
-        double profitMargin = stockQuote.getPrice() / transaction.price();
+    private boolean profitExceedsMargin(PositionTransaction transaction, StockQuoteIntraDay stockQuote) {
+        double profitMargin = stockQuote.price() / transaction.price();
         profitMargin--;
 
         return profitMargin >= controlsConfig.getTakeProfitMargin();
     }
 
     private StockPositionHoldType runTrailingStopLossControl(StockPosition<PositionTransaction> stockPosition,
-                                                             StockQuote stockQuote) {
+                                                             StockQuoteIntraDay stockQuote) {
         List<PositionTransaction> transactions = stockPosition.getOutstandingBuyTransactions();
         Date earliestOutstandingBuyDate = transactions.getFirst().transactionDate();
 
@@ -94,8 +94,8 @@ public class StockPositionControlsRunner implements StockPositionControls {
         }
     }
 
-    private boolean lossExceedsThreshold(double maximumPrice, StockQuote stockQuote) {
-        double delta = stockQuote.getPrice() - maximumPrice;
+    private boolean lossExceedsThreshold(double maximumPrice, StockQuoteIntraDay stockQuote) {
+        double delta = stockQuote.price() - maximumPrice;
         double lossMargin = delta / maximumPrice;
 
         return lossMargin >= controlsConfig.getStopLossMargin();

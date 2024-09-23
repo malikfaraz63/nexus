@@ -3,24 +3,25 @@ package com.nexus.atp.marketdata.manager;
 import com.nexus.atp.common.storage.BaseStorageManager;
 import com.nexus.atp.marketdata.MarketDataConfig;
 import com.nexus.atp.marketdata.api.MarketDataFetcher;
-import com.nexus.atp.marketdata.quote.StockQuote;
+import com.nexus.atp.marketdata.quote.StockQuoteDaily;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MarketDataStorageManager extends BaseStorageManager implements MarketDataManager {
     private final MarketDataFetcher marketDataFetcher;
     private final MarketDataConfig marketDataConfig;
 
-    private final Map<String, List<StockQuote>> stockTickerToQuote;
+    private final Map<String, List<StockQuoteDaily>> stockTickerToQuotes;
 
     public MarketDataStorageManager(MarketDataFetcher marketDataFetcher, MarketDataConfig marketDataConfig, String filePath) {
         super(filePath);
         this.marketDataFetcher = marketDataFetcher;
         this.marketDataConfig = marketDataConfig;
-        this.stockTickerToQuote = new HashMap<>();
+        this.stockTickerToQuotes = new HashMap<>();
 
         initializeMarketData();
     }
@@ -37,52 +38,105 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
         for (String ticker : stockTickers) {
             JSONArray stockDataJson = marketDataJson.getJSONArray(ticker);
 
-            List<StockQuote> stockQuotes = new ArrayList<>();
+            List<StockQuoteDaily> stockQuotes = new ArrayList<>();
             for (int i = 0; i < stockDataJson.length(); i++) {
                 JSONObject stockJson = stockDataJson.getJSONObject(i);
                 stockQuotes.add(getStockQuoteFromJSON(ticker, stockJson));
             }
 
-            stockTickerToQuote.put(ticker, stockQuotes);
+            stockTickerToQuotes.put(ticker, stockQuotes);
         }
 
-        stockTickers.forEach(this::subscribeToStockTicker);
+        marketDataFetcher.scheduleStockQuoteDaily(
+                stockTickerToQuotes.keySet(),
+                marketDataConfig.getEndOfDayStockQuotesTime(),
+                this::onStockQuotesDaily
+        );
     }
 
-    private void subscribeToStockTicker(String ticker) {
-        marketDataFetcher.subscribeToStock(
-                ticker,
-                marketDataConfig.getMarketDataStartTime(),
-                marketDataConfig.getMarketDataCallbackPeriod(), marketDataConfig.getMarketDataPeriodUnit(),
-                this::onStockQuote);
-    }
+    private void onStockQuotesDaily(Map<String, List<StockQuoteDaily>> stockQuoteDaily) {
+        for (String ticker : stockQuoteDaily.keySet()) {
+            if (!stockTickerToQuotes.containsKey(ticker)) {
+                throw new IllegalArgumentException("Data for unsubscribed ticker: " + ticker);
+            }
 
-    @Override
-    public void subscribeToStock(String ticker) {
-        if (stockTickerToQuote.containsKey(ticker)) {
-            return;
+            List<StockQuoteDaily> currentStockQuotes = stockTickerToQuotes.get(ticker);
+            List<StockQuoteDaily> stockQuotesUpdate = stockQuoteDaily.get(ticker);
+
+            int i = 0;
+            if (!currentStockQuotes.isEmpty()) {
+                while (i < (stockQuotesUpdate.size() - 1) && stockQuotesUpdate.get(i).getTimestamp().before(currentStockQuotes.getLast().getTimestamp())) {
+                    i++;
+                }
+
+                if (i == (stockQuotesUpdate.size() + 1)) {
+                    continue;
+                }
+            }
+
+            List<StockQuoteDaily> stockQuotesNew = stockQuotesUpdate.subList(i, stockQuotesUpdate.size());
+
+            currentStockQuotes.addAll(stockQuotesNew);
+            // need to write to JSON
+
+            for (StockQuoteDaily stockQuote : stockQuotesNew) {
+                JSONObject json = getJSONFromStockQuote(stockQuote);
+                JSONArray stockDataJson = fileContents
+                        .getJSONObject("marketData")
+                        .getJSONArray(ticker);
+
+                stockDataJson.put(json);
+            }
         }
-
-        stockTickerToQuote.put(ticker, new ArrayList<>());
-        subscribeToStockTicker(ticker);
-        fileContents.getJSONArray("stockTickers").put(ticker);
 
         super.writeFileContents();
     }
 
     @Override
-    public List<StockQuote> getStockQuotes(String ticker) {
-        return stockTickerToQuote.get(ticker);
+    public void subscribeToStocks(Set<String> tickers) {
+        Set<String> newTickers = tickers
+                .stream()
+                .filter(ticker -> !stockTickerToQuotes.containsKey(ticker))
+                .collect(Collectors.toSet());
+
+        if (newTickers.isEmpty()) {
+            return;
+        }
+
+        for (String ticker : newTickers) {
+            stockTickerToQuotes.put(ticker, new ArrayList<>());
+            fileContents
+                    .getJSONArray("stockTickers")
+                    .put(ticker);
+            fileContents
+                    .getJSONObject("marketData")
+                    .put(ticker, List.of());
+        }
+
+        marketDataFetcher.getHistoricStockQuotes(newTickers, this::onStockQuotesDaily);
+
+        super.writeFileContents();
+    }
+
+    @Override
+    public List<StockQuoteDaily> getStockQuotes(String ticker) {
+        return stockTickerToQuotes.get(ticker);
+    }
+
+    private List<StockQuoteDaily> fetchStockQuotes(String ticker) {
+        List<StockQuoteDaily> stockQuotes = stockTickerToQuotes.get(ticker);
+        if (stockQuotes == null) {
+            throw new IllegalArgumentException("No stock quotes found for ticker: " + ticker);
+        }
+
+        return stockQuotes;
     }
 
     @Override
     public double getMaxPriceForStock(String ticker, Date fromDate, Date toDate) {
         assert fromDate.before(toDate);
 
-        List<StockQuote> stockQuotes = stockTickerToQuote.get(ticker);
-        if (stockQuotes == null) {
-            throw new IllegalArgumentException("Ticker with no data: " + ticker);
-        }
+        List<StockQuoteDaily> stockQuotes = fetchStockQuotes(ticker);
 
         double maxPrice = Double.MIN_VALUE;
 
@@ -92,44 +146,55 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
         }
 
         while (i < stockQuotes.size() && stockQuotes.get(i).getTimestamp().before(toDate)) {
-            maxPrice = Math.max(maxPrice, stockQuotes.get(i).getPrice());
+            maxPrice = Math.max(maxPrice, stockQuotes.get(i).getHigh());
             i++;
         }
 
         return maxPrice;
     }
 
-    private void onStockQuote(StockQuote stockQuote) {
-        stockTickerToQuote.get(stockQuote.getTicker()).add(stockQuote);
+    @Override
+    public StockQuoteDaily getStockQuote(String ticker, Date transactionDate) {
+        List<StockQuoteDaily> stockQuotes = fetchStockQuotes(ticker);
 
-        JSONObject json = getJSONFromStockQuote(stockQuote);
-        JSONArray stockDataJson = fileContents
-                .getJSONObject("marketData")
-                .optJSONArray(stockQuote.getTicker());
+        int i = 0;
 
-        if (stockDataJson != null) {
-            stockDataJson.put(json);
-        } else {
-            fileContents
-                    .getJSONObject("marketData")
-                    .put(stockQuote.getTicker(), List.of(json));
+        long searchMillis = transactionDate.toInstant().toEpochMilli();
+        long diff = Long.MAX_VALUE;
+        while (i < stockQuotes.size()) {
+            long currentMillis = stockQuotes.get(i).getTimestamp().toInstant().toEpochMilli();
+            long currentDiff = Math.abs(currentMillis - searchMillis);
+            if (currentDiff < diff) {
+                diff = currentDiff;
+            } else {
+                return stockQuotes.get(i);
+            }
+            i++;
         }
 
-        super.writeFileContents();
+        return null;
     }
 
-    private StockQuote getStockQuoteFromJSON(String ticker, JSONObject json) {
-        return new StockQuote(
+    private StockQuoteDaily getStockQuoteFromJSON(String ticker, JSONObject json) {
+        return new StockQuoteDaily(
                 ticker,
-                json.getDouble("price"),
+                json.getDouble("open"),
+                json.getDouble("high"),
+                json.getDouble("low"),
+                json.getDouble("close"),
+                json.getDouble("volume"),
                 Date.from(Instant.ofEpochMilli(json.getLong("timestamp")))
         );
     }
 
-    private JSONObject getJSONFromStockQuote(StockQuote stockQuote) {
+    private JSONObject getJSONFromStockQuote(StockQuoteDaily stockQuote) {
         JSONObject json = new JSONObject();
 
-        json.put("price", stockQuote.getPrice());
+        json.put("open", stockQuote.getOpen());
+        json.put("high", stockQuote.getHigh());
+        json.put("low", stockQuote.getLow());
+        json.put("close", stockQuote.getClose());
+        json.put("volume", stockQuote.getVolume());
         json.put("timestamp", stockQuote.getTimestamp().toInstant().toEpochMilli());
 
         return json;

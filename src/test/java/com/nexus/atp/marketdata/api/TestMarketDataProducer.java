@@ -1,7 +1,9 @@
 package com.nexus.atp.marketdata.api;
 
-import com.nexus.atp.marketdata.quote.StockQuote;
+import com.nexus.atp.marketdata.quote.StockQuoteDaily;
+import com.nexus.atp.marketdata.quote.StockQuoteIntraDay;
 
 public interface TestMarketDataProducer {
-    StockQuote getNextQuote(String ticker);
+    StockQuoteIntraDay getNextIntraDayQuote(String ticker);
+    StockQuoteDaily getNextDailyQuote(String ticker);
 }

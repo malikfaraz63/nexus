@@ -1,7 +1,11 @@
 {
   "marketData": {"AAPL": [
     {
-      "price": 100.23,
+      "open": 100.23,
+      "high": 107.21,
+      "low": 99.83,
+      "close": 103.08,
+      "volume": 100000,
       "timestamp": 1725714139156
     }
   ]},

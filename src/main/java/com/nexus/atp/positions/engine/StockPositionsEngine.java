@@ -7,7 +7,7 @@ import com.nexus.atp.common.transaction.TradingSide;
 import com.nexus.atp.common.stock.StockTrade;
 import com.nexus.atp.gateway.StockTradesGateway;
 import com.nexus.atp.marketdata.api.MarketDataFetcher;
-import com.nexus.atp.marketdata.quote.StockQuote;
+import com.nexus.atp.marketdata.quote.StockQuoteIntraDay;
 import com.nexus.atp.positions.PositionTransaction;
 import com.nexus.atp.positions.controls.StockPositionControls;
 import com.nexus.atp.positions.controls.StockPositionHoldOutcome;
@@ -59,7 +59,7 @@ public class StockPositionsEngine implements HoldDecisionSubscriber {
     }
 
     private void subscribeToStockTicker(String ticker) {
-        marketDataFetcher.subscribeToStock(
+        marketDataFetcher.subscribeToStockIntraDay(
                 ticker,
                 engineConfig.getMarketDataStartTime(),
                 engineConfig.getMarketDataCallbackPeriod(), engineConfig.getMarketDataPeriodUnit(),
@@ -72,11 +72,11 @@ public class StockPositionsEngine implements HoldDecisionSubscriber {
         marketDataFetcher.getStockQuotes(decision.getTickers(), this::onQuotesForHoldDecision);
     }
 
-    private void onQuotesForHoldDecision(Map<String, StockQuote> stockQuotes) {
+    private void onQuotesForHoldDecision(Map<String, StockQuoteIntraDay> stockQuotes) {
         for (StocksHold stocksHold : decision.getStocksHolds()) {
             StockHoldUnitAllocation unitAllocation = stocksHold.getUnitAllocation();
             for (String ticker : stocksHold.getTickers()) {
-                StockQuote quote = stockQuotes.get(ticker);
+                StockQuoteIntraDay quote = stockQuotes.get(ticker);
 
                 int buyQuantity = accountManager.getStockPositionAllocation(quote, unitAllocation);
                 boolean canAllocatePosition = buyQuantity > 0;
@@ -92,8 +92,8 @@ public class StockPositionsEngine implements HoldDecisionSubscriber {
         }
     }
 
-    private void onStockQuote(StockQuote stockQuote) {
-        StockPosition<PositionTransaction> position = stockPositionsManager.getStockPosition(stockQuote.getTicker());
+    private void onStockQuote(StockQuoteIntraDay stockQuote) {
+        StockPosition<PositionTransaction> position = stockPositionsManager.getStockPosition(stockQuote.ticker());
 
         StockPositionHoldOutcome holdOutcome = stockPositionControls.getStockPositionHoldOutcome(position, stockQuote);
 

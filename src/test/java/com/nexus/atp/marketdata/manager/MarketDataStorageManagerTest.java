@@ -2,7 +2,9 @@ package com.nexus.atp.marketdata.manager;
 
 import com.nexus.atp.marketdata.MarketDataConfig;
 import com.nexus.atp.marketdata.api.TestMarketDataFetcher;
-import com.nexus.atp.marketdata.quote.StockQuote;
+import com.nexus.atp.marketdata.api.TestMarketDataProducer;
+import com.nexus.atp.marketdata.quote.StockQuoteDaily;
+import com.nexus.atp.marketdata.quote.StockQuoteIntraDay;
 import com.nexus.atp.positions.engine.StockPositionsEngineConfig;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
@@ -18,6 +20,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static com.nexus.atp.utils.Assert.assertEqualsFile;
@@ -31,8 +34,22 @@ class MarketDataStorageManagerTest {
     @Rule
     public final JUnitRuleMockery context = new JUnitRuleMockery();
 
-    private final TestMarketDataFetcher marketDataFetcher = new TestMarketDataFetcher(this::marketDataProducer);
-    private final MarketDataConfig config = new StockPositionsEngineConfig(LocalTime.of(6, 0), 30);
+    private final TestMarketDataFetcher marketDataFetcher = new TestMarketDataFetcher(new TestMarketDataProducer() {
+        @Override
+        public StockQuoteIntraDay getNextIntraDayQuote(String ticker) {
+            return marketDataProducerForIntraDay(ticker);
+        }
+
+        @Override
+        public StockQuoteDaily getNextDailyQuote(String ticker) {
+            return marketDataProducerForDaily(ticker);
+        }
+    });
+    private final MarketDataConfig config = new StockPositionsEngineConfig(
+            LocalTime.of(19, 0),
+            LocalTime.of(6, 0),
+            30
+    );
 
     @AfterEach
     public void resetResources() throws IOException {
@@ -43,7 +60,7 @@ class MarketDataStorageManagerTest {
     public void storageManagerShouldGetMarketDataFromFile() {
         MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
 
-        List<StockQuote> stockMarketData = marketDataStorageManager.getStockQuotes("AAPL");
+        List<StockQuoteDaily> stockMarketData = marketDataStorageManager.getStockQuotes("AAPL");
         assertEquals(1, stockMarketData.size());
     }
 
@@ -51,9 +68,9 @@ class MarketDataStorageManagerTest {
     public void storageManagerShouldPutNewMarketDataInFile() {
         MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
 
-        marketDataFetcher.advanceTimeTo(LocalTime.of(6, 0));
+        marketDataFetcher.advanceTimeTo(LocalTime.of(19, 0));
 
-        List<StockQuote> stockMarketData = marketDataStorageManager.getStockQuotes("AAPL");
+        List<StockQuoteDaily> stockMarketData = marketDataStorageManager.getStockQuotes("AAPL");
         assertEquals(2, stockMarketData.size());
 
         assertEqualsFile(marketDataFile, newDataFile);
@@ -63,24 +80,45 @@ class MarketDataStorageManagerTest {
     public void storageManagerShouldAllowNewStockSubscription() {
         MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
 
-        marketDataStorageManager.subscribeToStock("GOOGL");
 
-        marketDataFetcher.advanceTimeTo(LocalTime.of(6, 0));
+        List<StockQuoteDaily> stockMarketData1 = marketDataStorageManager.getStockQuotes("AAPL");
+        assertEquals(1, stockMarketData1.size());
 
-        List<StockQuote> stockMarketData1 = marketDataStorageManager.getStockQuotes("AAPL");
+        List<StockQuoteDaily> stockMarketData2 = marketDataStorageManager.getStockQuotes("GOOGL");
+        assertNull(stockMarketData2);
+
+        marketDataStorageManager.subscribeToStocks(Set.of("GOOGL"));
+
+        stockMarketData2 = marketDataStorageManager.getStockQuotes("GOOGL");
+        assertEquals(1, stockMarketData2.size());
+
+        marketDataFetcher.advanceTimeTo(LocalTime.of(19, 0));
+
+        stockMarketData1 = marketDataStorageManager.getStockQuotes("AAPL");
         assertEquals(2, stockMarketData1.size());
 
-        List<StockQuote> stockMarketData2 = marketDataStorageManager.getStockQuotes("GOOGL");
-        assertEquals(1, stockMarketData2.size());
+        stockMarketData2 = marketDataStorageManager.getStockQuotes("GOOGL");
+        assertEquals(2, stockMarketData2.size());
 
         assertEqualsFile(marketDataFile, newSubscriptionFile);
     }
 
-    private StockQuote marketDataProducer(String ticker) {
+    private StockQuoteIntraDay marketDataProducerForIntraDay(String ticker) {
         return switch (ticker) {
-            case "AAPL"  -> new StockQuote(ticker, 100.15, Date.from(Instant.ofEpochMilli(1725714139156L)));
-            case "GOOGL" -> new StockQuote(ticker, 104.85, Date.from(Instant.ofEpochMilli(1725728139156L)));
-            default      -> new StockQuote(ticker, 200.57, Date.from(Instant.MIN));
+            case "AAPL"  -> new StockQuoteIntraDay(ticker, 100.15, Date.from(Instant.ofEpochMilli(1725728139156L)));
+            case "GOOGL" -> new StockQuoteIntraDay(ticker, 104.85, Date.from(Instant.ofEpochMilli(1725728139156L)));
+            default      -> new StockQuoteIntraDay(ticker, 200.57, Date.from(Instant.MIN));
+        };
+    }
+
+    private StockQuoteDaily marketDataProducerForDaily(String ticker) {
+        return switch (ticker) {
+            case "AAPL" ->
+                    new StockQuoteDaily(ticker, 145.30, 147.50, 143.10, 146.00, 5000000, Date.from(Instant.ofEpochMilli(1725728139156L)));
+            case "GOOGL" ->
+                    new StockQuoteDaily(ticker, 2520.00, 2540.20, 2500.00, 2535.50, 3000000, Date.from(Instant.ofEpochMilli(1725728139156L)));
+            default ->
+                    new StockQuoteDaily(ticker, 200.00, 205.00, 195.00, 202.50, 8000000, Date.from(Instant.MIN));
         };
     }
 }

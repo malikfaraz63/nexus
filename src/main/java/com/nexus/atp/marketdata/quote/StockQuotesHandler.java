@@ -2,6 +2,6 @@ package com.nexus.atp.marketdata.quote;
 
 import java.util.Map;
 
-public interface StockQuotesHandler {
-    void onStockQuotes(Map<String, StockQuote> stockQuote);
+public interface StockQuotesHandler<QUOTE> {
+    void onStockQuotes(Map<String, QUOTE> stockQuote);
 }

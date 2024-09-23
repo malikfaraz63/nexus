@@ -3,7 +3,7 @@ package com.nexus.atp.application;
 import com.nexus.atp.common.EngineTimeProvider;
 import com.nexus.atp.common.scheduled.ScheduledTimer;
 
-import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class ResourcesBuilder {
@@ -11,7 +11,17 @@ public class ResourcesBuilder {
 
     public EngineTimeProvider getTimeProvider() {
         if (timeProvider == null) {
-            timeProvider = () -> Date.from(Instant.now());
+            timeProvider = new EngineTimeProvider() {
+                @Override
+                public Date getEngineTime() {
+                    return new Date();
+                }
+
+                @Override
+                public ZoneId getTimeZone() {
+                    return ZoneId.systemDefault();
+                }
+            };
         }
 
         return timeProvider;

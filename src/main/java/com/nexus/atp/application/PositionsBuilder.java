@@ -71,6 +71,10 @@ public class PositionsBuilder {
     }
 
     public StockPositionsEngineConfig getPositionsEngineConfig() {
-        return new StockPositionsEngineConfig(LocalTime.of(6, 0), 15);
+        return new StockPositionsEngineConfig(
+                LocalTime.of(21, 0),
+                LocalTime.of(6, 0),
+                15
+        );
     }
 }

@@ -1,5 +1,5 @@
 package com.nexus.atp.marketdata.quote;
 
 public interface StockQuoteHandler {
-    void onStockQuote(StockQuote stockQuote);
+    void onStockQuote(StockQuoteIntraDay stockQuote);
 }

@@ -1,17 +1,39 @@
 {
   "marketData": {
-    "GOOGL": [{
-      "price": 104.85,
-      "timestamp": 1725728139156
-    }],
+    "GOOGL": [
+      {
+        "volume": 3000000,
+        "high": 2540.2,
+        "low": 2500,
+        "close": 2535.5,
+        "open": 2520,
+        "timestamp": 1725728139156
+      },
+      {
+        "volume": 3000000,
+        "high": 2540.2,
+        "low": 2500,
+        "close": 2535.5,
+        "open": 2520,
+        "timestamp": 1725728139156
+      }
+    ],
     "AAPL": [
       {
-        "price": 100.23,
+        "volume": 100000,
+        "high": 107.21,
+        "low": 99.83,
+        "close": 103.08,
+        "open": 100.23,
         "timestamp": 1725714139156
       },
       {
-        "price": 100.15,
-        "timestamp": 1725714139156
+        "volume": 5000000,
+        "high": 147.5,
+        "low": 143.1,
+        "close": 146,
+        "open": 145.3,
+        "timestamp": 1725728139156
       }
     ]
   },
