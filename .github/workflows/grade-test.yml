@@ -1,0 +1,45 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up the JDK (Java Development Kit)
+    - name: Set up JDK 22
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'  # Use Temurin distribution of JDK
+        java-version: '22'       # Specify Java version
+
+    # Step 3: Cache Gradle dependencies to speed up builds
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle
+
+    # Step 4: Build the project using Gradle
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    # Step 5: Run tests after building the project
+    - name: Run tests with Gradle
+      run: ./gradlew test
