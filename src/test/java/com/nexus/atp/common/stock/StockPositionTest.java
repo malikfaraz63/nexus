@@ -9,9 +9,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StockPositionTest {
-    private static final String TICKER = "AAPL";
-    private static final Date TRANSACTION_DATE = new Date(1725714139150L);
+public class StockPositionTest {
+    public static final String TICKER = "AAPL";
+    public static final Date TRANSACTION_DATE = new Date(1725714139150L);
 
     /// MARK: Outstanding Buys
 
@@ -21,7 +21,7 @@ class StockPositionTest {
             new PositionTransaction(TICKER, 600, 154.00, TradingSide.BUY, TRANSACTION_DATE)
     );
     
-    private static final List<PositionTransaction> PARTIAL_OUTSTANDING_TRANSACTIONS = List.of(
+    public static final List<PositionTransaction> PARTIAL_OUTSTANDING_TRANSACTIONS = List.of(
             // First 2 BUYs
             new PositionTransaction(TICKER, 1000, 150.25, TradingSide.BUY, TRANSACTION_DATE),
             new PositionTransaction(TICKER, 500, 151.00, TradingSide.BUY, TRANSACTION_DATE),

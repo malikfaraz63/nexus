@@ -75,6 +75,12 @@ public class StockPositionControlsRunner implements StockPositionControls {
         return profitMargin >= controlsConfig.getTakeProfitMargin();
     }
 
+    /**
+     * Runs whether to sell due to loss threshold reached for current stock's outstanding buy position
+     * @param stockPosition the position to get the outstanding buys from
+     * @param stockQuote the latest price quote for the stock
+     * @return whether to hold or sell
+     */
     private StockPositionHoldType runTrailingStopLossControl(StockPosition<PositionTransaction> stockPosition,
                                                              StockQuoteIntraDay stockQuote) {
         List<PositionTransaction> transactions = stockPosition.getOutstandingBuyTransactions();
@@ -98,6 +104,6 @@ public class StockPositionControlsRunner implements StockPositionControls {
         double delta = stockQuote.price() - maximumPrice;
         double lossMargin = delta / maximumPrice;
 
-        return lossMargin >= controlsConfig.getStopLossMargin();
+        return -lossMargin >= controlsConfig.getStopLossMargin();
     }
 }
