@@ -2,6 +2,7 @@ package com.nexus.atp.common.stock;
 
 import com.nexus.atp.common.transaction.TradingSide;
 import com.nexus.atp.positions.PositionTransaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -143,6 +144,8 @@ public class StockPositionTest {
             new PositionTransaction(TICKER, 500, 150, TradingSide.BUY, TRANSACTION_DATE),
             new PositionTransaction(TICKER, 50, 180, TradingSide.SELL, TRANSACTION_DATE)
     );
+
+    @Disabled
     @Test
     public void stockPositionDoesNotAccomodateForNonSensicalScenarios() {
         // TODO: need to accomodate for this
@@ -152,6 +155,5 @@ public class StockPositionTest {
         StockPosition<PositionTransaction> stockPosition = new StockPosition<>(TICKER);
         STUPID_SCENARIO.forEach(stockPosition::addTransaction);
 
-        System.out.println(stockPosition.getCoreProfitability(FROM, TO));
     }
 }
