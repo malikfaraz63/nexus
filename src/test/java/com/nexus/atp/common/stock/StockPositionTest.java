@@ -15,7 +15,7 @@ public class StockPositionTest {
 
     /// MARK: Outstanding Buys
 
-    private static final List<PositionTransaction> BASIC_TRANSACTIONS = List.of(
+    public static final List<PositionTransaction> BASIC_TRANSACTIONS = List.of(
             new PositionTransaction(TICKER, 800, 152.75, TradingSide.BUY, TRANSACTION_DATE),
             new PositionTransaction(TICKER, 800, 158.75, TradingSide.SELL, TRANSACTION_DATE),
             new PositionTransaction(TICKER, 600, 154.00, TradingSide.BUY, TRANSACTION_DATE)

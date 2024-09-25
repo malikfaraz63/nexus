@@ -56,7 +56,7 @@ public class StockPositionControlsRunner implements StockPositionControls {
 
         sellQuantity = 0;
         int i = 0;
-        while (profitExceedsMargin(transactions.get(i), stockQuote)) {
+        while (i < transactions.size() && profitExceedsMargin(transactions.get(i), stockQuote)) {
             sellQuantity += transactions.get(i).quantity();
             i++;
         }
