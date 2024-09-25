@@ -42,4 +42,4 @@ jobs:
 
     # Step 5: Run tests after building the project
     - name: Run tests with Gradle
-      run: ./gradlew test
+      run: ./gradlew clean test
