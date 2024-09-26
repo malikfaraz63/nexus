@@ -1,9 +1,11 @@
 package com.nexus.atp.marketdata.manager;
 
 import com.nexus.atp.common.storage.BaseStorageManager;
+import com.nexus.atp.common.utils.Logger;
 import com.nexus.atp.marketdata.MarketDataConfig;
 import com.nexus.atp.marketdata.api.MarketDataFetcher;
 import com.nexus.atp.marketdata.quote.StockQuoteDaily;
+import java.time.temporal.ChronoUnit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -17,8 +19,8 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
 
     private final Map<String, List<StockQuoteDaily>> stockTickerToQuotes;
 
-    public MarketDataStorageManager(MarketDataFetcher marketDataFetcher, MarketDataConfig marketDataConfig, String filePath) {
-        super(filePath);
+    public MarketDataStorageManager(MarketDataFetcher marketDataFetcher, MarketDataConfig marketDataConfig, String filePath, Logger logger) {
+        super(filePath, logger);
         this.marketDataFetcher = marketDataFetcher;
         this.marketDataConfig = marketDataConfig;
         this.stockTickerToQuotes = new HashMap<>();
@@ -65,7 +67,7 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
 
             int i = 0;
             if (!currentStockQuotes.isEmpty()) {
-                while (i < (stockQuotesUpdate.size() - 1) && stockQuotesUpdate.get(i).getTimestamp().before(currentStockQuotes.getLast().getTimestamp())) {
+                while (i < (stockQuotesUpdate.size() - 1) && stockQuotesUpdate.get(i).timestamp().before(currentStockQuotes.getLast().timestamp())) {
                     i++;
                 }
 
@@ -141,12 +143,12 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
         double maxPrice = Double.MIN_VALUE;
 
         int i = 0;
-        while (stockQuotes.get(i).getTimestamp().before(fromDate)) {
+        while (stockQuotes.get(i).timestamp().before(fromDate)) {
             i++;
         }
 
-        while (i < stockQuotes.size() && stockQuotes.get(i).getTimestamp().before(toDate)) {
-            maxPrice = Math.max(maxPrice, stockQuotes.get(i).getHigh());
+        while (i < stockQuotes.size() && stockQuotes.get(i).timestamp().before(toDate)) {
+            maxPrice = Math.max(maxPrice, stockQuotes.get(i).high());
             i++;
         }
 
@@ -157,19 +159,28 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
     public StockQuoteDaily getStockQuote(String ticker, Date transactionDate) {
         List<StockQuoteDaily> stockQuotes = fetchStockQuotes(ticker);
 
-        int i = 0;
+        int lower = 0;
+        int upper = stockQuotes.size() - 1;
 
-        long searchMillis = transactionDate.toInstant().toEpochMilli();
-        long diff = Long.MAX_VALUE;
-        while (i < stockQuotes.size()) {
-            long currentMillis = stockQuotes.get(i).getTimestamp().toInstant().toEpochMilli();
-            long currentDiff = Math.abs(currentMillis - searchMillis);
-            if (currentDiff < diff) {
-                diff = currentDiff;
-            } else {
+        long searchMillis = transactionDate
+            .toInstant()
+            .truncatedTo(ChronoUnit.DAYS)
+            .toEpochMilli();
+
+        while (lower <= upper) {
+            int i = (lower + upper) / 2;
+
+            long currentMillis = stockQuotes.get(i).timestamp()
+                .toInstant()
+                .toEpochMilli();
+
+            if (currentMillis == searchMillis) {
                 return stockQuotes.get(i);
+            } else if (currentMillis < searchMillis) {
+                lower = i + 1;
+            } else {
+                upper = i - 1;
             }
-            i++;
         }
 
         return null;
@@ -190,12 +201,12 @@ public class MarketDataStorageManager extends BaseStorageManager implements Mark
     private JSONObject getJSONFromStockQuote(StockQuoteDaily stockQuote) {
         JSONObject json = new JSONObject();
 
-        json.put("open", stockQuote.getOpen());
-        json.put("high", stockQuote.getHigh());
-        json.put("low", stockQuote.getLow());
-        json.put("close", stockQuote.getClose());
-        json.put("volume", stockQuote.getVolume());
-        json.put("timestamp", stockQuote.getTimestamp().toInstant().toEpochMilli());
+        json.put("open", stockQuote.open());
+        json.put("high", stockQuote.high());
+        json.put("low", stockQuote.low());
+        json.put("close", stockQuote.close());
+        json.put("volume", stockQuote.volume());
+        json.put("timestamp", stockQuote.timestamp().toInstant().toEpochMilli());
 
         return json;
     }

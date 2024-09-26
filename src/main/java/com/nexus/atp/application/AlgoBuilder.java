@@ -4,6 +4,7 @@ import com.nexus.atp.algos.common.AllocationConfig;
 import com.nexus.atp.algos.common.StockHoldUnitAllocation;
 import com.nexus.atp.algos.congress.CongressTransactionsClient;
 import com.nexus.atp.algos.congress.api.CongressTradesFetcher;
+import com.nexus.atp.algos.congress.api.QuiverQuantApiFetcher;
 import com.nexus.atp.algos.congress.engine.CongressTradesAlgoEngine;
 import com.nexus.atp.algos.congress.engine.CongressTradesEngineConfig;
 import com.nexus.atp.algos.congress.engine.CongressTradesEngineSetting;
@@ -19,15 +20,31 @@ import java.util.Map;
 
 public class AlgoBuilder {
     private final ResourcesBuilder resourcesBuilder;
+    private final MarketDataBuilder marketDataBuilder;
     private final String congressTradesFilePath;
+    private final String quiverQuantAuthToken;
 
-    public AlgoBuilder(ResourcesBuilder resourcesBuilder, String congressTradesFilePath) {
+    private CongressTradesFetcher congressTradesFetcher;
+
+    public AlgoBuilder(ResourcesBuilder resourcesBuilder, MarketDataBuilder marketDataBuilder, String congressTradesFilePath, String quiverQuantAuthToken) {
         this.congressTradesFilePath = congressTradesFilePath;
+        this.marketDataBuilder = marketDataBuilder;
         this.resourcesBuilder = resourcesBuilder;
+        this.quiverQuantAuthToken = quiverQuantAuthToken;
     }
 
     private CongressTradesFetcher getCongressTradesFetcher() {
-        throw new UnsupportedOperationException(); // TODO: implement congress trades API
+        if (congressTradesFetcher == null) {
+            congressTradesFetcher = new QuiverQuantApiFetcher(
+                quiverQuantAuthToken,
+                resourcesBuilder.getLogger(),
+                marketDataBuilder.getMarketDataManager(),
+                resourcesBuilder.getTimeProvider(),
+                resourcesBuilder.getScheduledTimer()
+            );
+        }
+
+        return congressTradesFetcher;
     }
 
     private AllocationConfig getCongressHoldAllocationConfig() {
@@ -59,7 +76,7 @@ public class AlgoBuilder {
     }
 
     private CongressPositionsManager getCongressPositionsManager() {
-        return new CongressTradesStorageManager(congressTradesFilePath);
+        return new CongressTradesStorageManager(congressTradesFilePath, resourcesBuilder.getLogger(), getCongressTradesFetcher());
     }
 
     private CongressTradesAlgoEngine getCongressTradesAlgoEngine(HoldDecisionSubscriber holdDecisionSubscriber) {

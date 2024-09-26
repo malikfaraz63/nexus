@@ -3,6 +3,7 @@ package com.nexus.atp.positions.manager;
 import com.nexus.atp.common.stock.StockPosition;
 import com.nexus.atp.common.transaction.TradingSide;
 import com.nexus.atp.positions.PositionTransaction;
+import com.nexus.atp.utils.TestResources;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +23,7 @@ public class StockPositionsStorageManagerTest {
     private static final Path backupFile = Path.of("src/test/resources/position-transactions-backup.json");
 
     private final StockPositionsStorageManager storageManager =
-            new StockPositionsStorageManager(transactionsFile.toString());
+            new StockPositionsStorageManager(transactionsFile.toString(), TestResources.LOGGER);
 
     @AfterEach
     public void resetResources() throws IOException {

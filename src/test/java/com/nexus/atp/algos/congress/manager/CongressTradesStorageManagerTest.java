@@ -1,9 +1,13 @@
 package com.nexus.atp.algos.congress.manager;
 
 import com.nexus.atp.algos.congress.CongressTransaction;
+import com.nexus.atp.algos.congress.api.CongressTradesFetcher;
 import com.nexus.atp.algos.congress.position.CongressPosition;
+import com.nexus.atp.application.ResourcesBuilder;
 import com.nexus.atp.common.stock.StockPosition;
 import com.nexus.atp.common.transaction.TradingSide;
+import org.jmock.integration.junit4.JUnitRuleMockery;
+import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +26,13 @@ public class CongressTradesStorageManagerTest {
     private static final Path addedTransactionFile = Path.of("src/test/resources/add-congress-transactions.json");
     private static final Path backupFile = Path.of("src/test/resources/congress-transactions-backup.json");
 
+    @Rule
+    public final JUnitRuleMockery context = new JUnitRuleMockery();
+
+    private final CongressTradesFetcher congressTradesFetcher = context.mock(CongressTradesFetcher.class);
+
     private final CongressTradesStorageManager storageManager =
-            new CongressTradesStorageManager(transactionsFile.toString());
+            new CongressTradesStorageManager(transactionsFile.toString(), new ResourcesBuilder().getLogger(), congressTradesFetcher);
 
     @AfterEach
     public void resetResources() throws IOException {

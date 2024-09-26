@@ -1,5 +1,6 @@
 package com.nexus.atp.common.storage;
 
+import com.nexus.atp.common.utils.Logger;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -13,9 +14,12 @@ public class BaseStorageManager {
 
     protected JSONObject fileContents;
 
-    public BaseStorageManager(String filePath) {
+    private final Logger logger;
+
+    public BaseStorageManager(String filePath, Logger logger) {
         this.filePath = filePath;
         this.path = Paths.get(filePath);
+        this.logger = logger;
 
         initialize();
     }
@@ -25,7 +29,7 @@ public class BaseStorageManager {
             String fileContents = new String(Files.readAllBytes(path));
             this.fileContents = new JSONObject(fileContents);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            logger.error("IOException when loading contents from file:\n" + e.getMessage());
         }
     }
 
@@ -33,7 +37,7 @@ public class BaseStorageManager {
         try {
             Files.write(Paths.get(filePath), fileContents.toString(2).getBytes());
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            logger.error("IOException when writing contents to file:\n" + e.getMessage());
         }
     }
 }

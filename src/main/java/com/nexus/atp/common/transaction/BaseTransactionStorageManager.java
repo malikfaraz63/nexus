@@ -1,5 +1,6 @@
 package com.nexus.atp.common.transaction;
 
+import com.nexus.atp.common.utils.Logger;
 import java.util.ArrayList;
 
 import com.nexus.atp.common.storage.BaseStorageManager;
@@ -11,8 +12,8 @@ import java.util.List;
 public abstract class BaseTransactionStorageManager<TRANSACTION extends BaseTransaction> extends BaseStorageManager {
     private final String transactionsKey;
 
-    public BaseTransactionStorageManager(String filePath, String transactionsKey) {
-        super(filePath);
+    public BaseTransactionStorageManager(String filePath, String transactionsKey, Logger logger) {
+        super(filePath, logger);
         this.transactionsKey = transactionsKey;
     }
 
@@ -27,6 +28,16 @@ public abstract class BaseTransactionStorageManager<TRANSACTION extends BaseTran
         }
 
         return transactions;
+    }
+
+    protected void writeTransactions(List<TRANSACTION> transactions) {
+        JSONArray transactionsJson = fileContents.getJSONArray(transactionsKey);
+
+        for (TRANSACTION transaction : transactions) {
+            transactionsJson.put(getJSONFromObject(transaction));
+        }
+
+        writeFileContents();
     }
 
     protected void writeTransaction(TRANSACTION transaction) {

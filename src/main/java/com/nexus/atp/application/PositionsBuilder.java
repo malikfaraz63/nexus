@@ -38,7 +38,7 @@ public class PositionsBuilder {
     }
 
     private StockPositionsManager getPositionsManager() {
-        return new StockPositionsStorageManager(stockPositionsFilePath);
+        return new StockPositionsStorageManager(stockPositionsFilePath, resourcesBuilder.getLogger());
     }
 
     private AccountManager getAccountManager() {

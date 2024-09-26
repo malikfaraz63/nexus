@@ -43,7 +43,8 @@ public class MarketDataBuilder {
             marketDataManager = new MarketDataStorageManager(
                     getMarketDataFetcher(),
                     marketDataConfig,
-                    marketDataFilePath
+                    marketDataFilePath,
+                resourcesBuilder.getLogger()
             );
         }
 

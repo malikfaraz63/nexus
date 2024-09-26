@@ -6,6 +6,7 @@ import com.nexus.atp.marketdata.api.TestMarketDataProducer;
 import com.nexus.atp.marketdata.quote.StockQuoteDaily;
 import com.nexus.atp.marketdata.quote.StockQuoteIntraDay;
 import com.nexus.atp.positions.engine.StockPositionsEngineConfig;
+import com.nexus.atp.utils.TestResources;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
@@ -58,7 +59,7 @@ class MarketDataStorageManagerTest {
 
     @Test
     public void storageManagerShouldGetMarketDataFromFile() {
-        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
+        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString(), TestResources.LOGGER);
 
         List<StockQuoteDaily> stockMarketData = marketDataStorageManager.getStockQuotes("AAPL");
         assertEquals(1, stockMarketData.size());
@@ -66,7 +67,7 @@ class MarketDataStorageManagerTest {
 
     @Test
     public void storageManagerShouldPutNewMarketDataInFile() {
-        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
+        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString(), TestResources.LOGGER);
 
         marketDataFetcher.advanceTimeTo(LocalTime.of(19, 0));
 
@@ -78,7 +79,8 @@ class MarketDataStorageManagerTest {
 
     @Test
     public void storageManagerShouldAllowNewStockSubscription() {
-        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString());
+        MarketDataStorageManager marketDataStorageManager = new MarketDataStorageManager(marketDataFetcher, config, marketDataFile.toString(),
+            TestResources.LOGGER);
 
 
         List<StockQuoteDaily> stockMarketData1 = marketDataStorageManager.getStockQuotes("AAPL");

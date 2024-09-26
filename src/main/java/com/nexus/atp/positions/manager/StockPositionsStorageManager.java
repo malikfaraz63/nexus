@@ -1,5 +1,6 @@
 package com.nexus.atp.positions.manager;
 
+import com.nexus.atp.common.utils.Logger;
 import com.nexus.atp.positions.PositionTransaction;
 import com.nexus.atp.common.stock.StockPosition;
 import com.nexus.atp.common.transaction.BaseTransactionStorageManager;
@@ -19,8 +20,8 @@ public class StockPositionsStorageManager
     private final Map<String, StockPosition<PositionTransaction>> stockTickerToPosition;
     private final Set<StockPosition<PositionTransaction>> stockPositions;
 
-    public StockPositionsStorageManager(String filePath) {
-        super(filePath, "positionTransactions");
+    public StockPositionsStorageManager(String filePath, Logger logger) {
+        super(filePath, "positionTransactions", logger);
         this.stockTickerToPosition = new HashMap<>();
         this.stockPositions = new HashSet<>();
 

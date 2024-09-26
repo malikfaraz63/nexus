@@ -57,6 +57,15 @@ public class QuiverQuantApiClient {
         return getCongressTrades(request);
     }
 
+    public Map<String, List<HistoricalCongressTrading>> getCongressTrades(Date date) {
+        String apiUrl = BASE_URL + "bulk/congresstrading?";
+        HttpRequest request = buildRequest(apiUrl, Map.of(
+            "date", queryFormatter.format(date)
+        ));
+
+        return getCongressTrades(request);
+    }
+
     public Map<String, List<HistoricalCongressTrading>> getCongressTradesWithCongressId(String congressId) {
         String apiUrl = BASE_URL + "bulk/congresstrading?";
         HttpRequest request = buildRequest(apiUrl, Map.of(
@@ -128,6 +137,7 @@ public class QuiverQuantApiClient {
             transactionDate = responseFormatter.parse(json.getString("TransactionDate"));
             reportingDate = responseFormatter.parse(json.getString("ReportDate"));
         } catch (ParseException e) {
+            logger.error("ParseException '%s' on:\n%s", e.getMessage(), json);
             System.out.println(e.getMessage());
             return null;
         }

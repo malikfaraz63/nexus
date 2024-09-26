@@ -1,9 +1,11 @@
 package com.nexus.atp.algos.congress.manager;
 
+import com.nexus.atp.algos.congress.api.CongressTradesFetcher;
 import com.nexus.atp.algos.congress.position.CongressPosition;
 import com.nexus.atp.algos.congress.CongressTransaction;
 import com.nexus.atp.common.transaction.BaseTransactionStorageManager;
 import com.nexus.atp.common.transaction.TradingSide;
+import com.nexus.atp.common.utils.Logger;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,11 +22,11 @@ public class CongressTradesStorageManager
 
     private final Map<String, CongressPosition> congressIdToPosition;
     private final Set<CongressPosition> congressPositions;
+    private final CongressTradesFetcher congressTradesFetcher;
 
-    private List<CongressTransaction> transactions;
-
-    public CongressTradesStorageManager(String filePath) {
-        super(filePath, "congressTransactions");
+    public CongressTradesStorageManager(String filePath, Logger logger, CongressTradesFetcher congressTradesFetcher) {
+        super(filePath, "congressTransactions", logger);
+        this.congressTradesFetcher = congressTradesFetcher;
         this.congressIdToPosition = new HashMap<>();
         this.congressPositions = new HashSet<>();
 
@@ -32,13 +34,33 @@ public class CongressTradesStorageManager
     }
 
     private void initializeTransactions() {
-        this.transactions = super.getTransactions();
+        List<CongressTransaction> transactions = super.getTransactions();
 
-        for (CongressTransaction transaction : transactions) {
-            putTransaction(transaction);
+        if (transactions.isEmpty()) {
+            congressTradesFetcher.getHistoricCongressTrades(this::historicCongressTradesHandler);
+        } else {
+            for (CongressTransaction transaction : transactions) {
+                putTransaction(transaction);
+            }
         }
 
         congressPositions.forEach(CongressPosition::didViewUpdate);
+    }
+
+    private void historicCongressTradesHandler(Map<String, List<CongressTransaction>> congressIdToTransactions) {
+        for (String congressId : congressIdToTransactions.keySet()) {
+            List<CongressTransaction> transactions = congressIdToTransactions.get(congressId);
+            CongressPosition position = createCongressPosition(congressId);
+
+            transactions.forEach(position::addTransaction);
+        }
+
+        List<CongressTransaction> allTransactions = congressIdToTransactions.values()
+            .stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+        super.writeTransactions(allTransactions);
     }
 
     @Override
@@ -63,13 +85,16 @@ public class CongressTradesStorageManager
         return congressIdToPosition.get(congressId);
     }
 
-    private void putTransaction(CongressTransaction transaction) {
-        CongressPosition position = congressIdToPosition.computeIfAbsent(transaction.congressId(), congressId -> {
-            CongressPosition congressPosition = new CongressPosition(congressId);
-            congressPositions.add(congressPosition);
+    private CongressPosition createCongressPosition(String congressId) {
+        CongressPosition congressPosition = new CongressPosition(congressId);
+        congressPositions.add(congressPosition);
 
-            return congressPosition;
-        });
+        return congressPosition;
+    }
+
+    private void putTransaction(CongressTransaction transaction) {
+        CongressPosition position = congressIdToPosition.computeIfAbsent(transaction.congressId(),
+            this::createCongressPosition);
 
         position.addTransaction(transaction);
     }

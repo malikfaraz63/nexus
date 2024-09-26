@@ -54,7 +54,7 @@ public class AlphaVantageApiFetcher implements MarketDataFetcher {
                     List<StockQuoteDaily> stockQuotes = stockQuotesResult.get();
                     if (stockQuotes.isEmpty()) continue;
 
-                    String ticker = stockQuotes.getFirst().getTicker();
+                    String ticker = stockQuotes.getFirst().ticker();
                     stockTickerToQuotes.put(ticker, stockQuotes);
                 } catch (CancellationException e) {
                     logger.error("Cancellation due to timeout while fetching stock quote: %s", e.getMessage());
@@ -110,10 +110,10 @@ public class AlphaVantageApiFetcher implements MarketDataFetcher {
             }
             handler.onStockQuotes(stockTickerToQuote);
         } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
+            logger.error("Interrupted while fetching stock quotes: %s", e.getMessage());
             executorService.shutdownNow();
         } catch (ExecutionException e) {
-            System.out.println(e.getMessage());
+            logger.error("Execution exception while fetching stock quotes: %s", e.getMessage());
         }
     }
 }
