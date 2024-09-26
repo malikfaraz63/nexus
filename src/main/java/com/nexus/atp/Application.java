@@ -23,7 +23,9 @@ public class Application {
 
         AlgoBuilder algoBuilder = new AlgoBuilder(
                 resourcesBuilder,
-                System.getenv("CONGRESS_TRADES_PATH"));
+                marketDataBuilder,
+                System.getenv("CONGRESS_TRADES_PATH"),
+                System.getenv("QUIVER_QUANT_AUTH_TOKEN"));
 
         algoBuilder.setupCongressTrades(positionsBuilder.getPositionsEngine());
     }
