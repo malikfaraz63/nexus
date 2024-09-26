@@ -2,7 +2,7 @@ package com.nexus.atp.algos.congress.position;
 
 import com.nexus.atp.algos.congress.CongressTransaction;
 import com.nexus.atp.common.transaction.TradingSide;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.List;
@@ -64,11 +64,11 @@ public class CongressPositionTest {
             REPORTING_DATE
     );
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void congressPositionRejectsTransactionsForDifferentId() {
         CongressPosition position = new CongressPosition(CONGRESS_ID);
 
-        position.addTransaction(OTHER_TRANSACTION);
+        assertThrows(IllegalArgumentException.class, () -> position.addTransaction(OTHER_TRANSACTION));
     }
 
     @Test
